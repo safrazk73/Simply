@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>SimplyAccountingFirm</title>
+<style>
+  :root {
+    --gold: #B8902A; --gold-light: #D4A93A; --gold-dark: #8A6A18;
+    --gold-bg: #FBF6EC; --black: #111111; --text: #1A1A1A;
+    --text-muted: #6B5E45; --border: #E8DFC8; --card-bg: #FFFFFF;
+    --page-bg: #F9F6F1; --input-bg: #FAFAF8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+         background: var(--page-bg); color: var(--text); min-height: 100vh; }
+
+  /* HEADER */
+  header { background: var(--black); padding: 26px 16px 22px; text-align: center; }
+  .logo-wrap { position: relative; width: 42px; height: 42px; margin: 0 auto 12px; }
+  .logo-diamond { width: 42px; height: 42px; background: var(--gold); transform: rotate(45deg); position: absolute; }
+  .logo-inner { width: 20px; height: 20px; background: var(--black); transform: rotate(45deg);
+                position: absolute; top: 11px; left: 11px; }
+  header h1 { font-size: 1.5rem; font-weight: 900; color: #FFFFFF; letter-spacing: 0.3px; }
+  header h1 span { color: var(--gold); }
+  header p { font-size: 0.78rem; color: #999; margin-top: 5px; letter-spacing: 1.5px; text-transform: uppercase; }
+
+  /* TABS */
+  .tabs { display: flex; background: #FFFFFF; border-bottom: 2px solid var(--border);
+          overflow-x: auto; -webkit-overflow-scrolling: touch; position: sticky; top: 0; z-index: 100; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { flex: 1; min-width: 72px; padding: 13px 6px 11px; text-align: center;
+         font-size: 0.72rem; font-weight: 700; color: #999; cursor: pointer; transition: all 0.2s;
+         white-space: nowrap; letter-spacing: 0.3px; text-transform: uppercase;
+         border-bottom: 3px solid transparent; }
+  .tab.active { color: var(--gold); border-bottom: 3px solid var(--gold); }
+  .tab:hover:not(.active) { color: var(--text); background: var(--gold-bg); }
+
+  /* SECTIONS */
+  .section { display: none; padding: 20px 16px 60px; max-width: 500px; margin: 0 auto; }
+  .section.active { display: block; }
+
+  /* CARDS */
+  .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px;
+          padding: 20px; margin-bottom: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+  .card-title { font-size: 0.95rem; font-weight: 800; color: var(--black);
+                margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .card-title .icon { color: var(--gold); }
+
+  /* HERO */
+  .hero { background: var(--black); border-radius: 18px; padding: 28px 20px;
+          text-align: center; margin-bottom: 16px; }
+  .hero h2 { font-size: 1.4rem; font-weight: 900; color: #FFFFFF; margin-bottom: 6px; }
+  .hero h2 span { color: var(--gold); }
+  .hero p { color: #AAA; font-size: 0.88rem; line-height: 1.6; margin-bottom: 20px; }
+  .hero-btn { background: var(--gold); color: var(--black); font-weight: 800;
+              font-size: 0.95rem; padding: 14px 32px; border-radius: 50px;
+              border: none; cursor: pointer; transition: all 0.2s; }
+  .hero-btn:hover { background: var(--gold-light); }
+
+  /* STAT PILLS */
+  .stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .stat-pill { background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px;
+               padding: 16px 14px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+  .stat-num { font-size: 1.6rem; font-weight: 900; color: var(--gold); }
+  .stat-label { font-size: 0.73rem; color: var(--text-muted); margin-top: 3px; font-weight: 700;
+                text-transform: uppercase; letter-spacing: 0.4px; }
+
+  /* SERVICE LIST */
+  .service-list { list-style: none; }
+  .service-list li { display: flex; align-items: center; gap: 10px; padding: 10px 0;
+                     border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+  .service-list li:last-child { border-bottom: none; }
+  .service-list li::before { content: '◆'; color: var(--gold); font-size: 0.6rem; flex-shrink: 0; }
+
+  /* HOURS TABLE */
+  .hours-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+  .hours-table tr { border-bottom: 1px solid var(--border); }
+  .hours-table tr:last-child { border-bottom: none; }
+  .hours-table td { padding: 9px 4px; }
+  .hours-table td:last-child { text-align: right; color: var(--gold); font-weight: 700; }
+  .hours-table .wknd td { color: var(--text-muted); }
+  .hours-table .wknd td:last-child { color: var(--gold-dark); }
+
+  /* STEPS */
+  .steps { display: flex; align-items: center; justify-content: center; margin-bottom: 22px; gap: 6px; }
+  .step { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--border);
+          display: flex; align-items: center; justify-content: center;
+          font-size: 0.75rem; font-weight: 800; color: #BBB; transition: all 0.3s; }
+  .step.active { border-color: var(--gold); color: var(--gold); background: var(--gold-bg); }
+  .step.done { border-color: var(--gold); background: var(--gold); color: #FFF; }
+  .step-line { flex: 1; height: 2px; background: var(--border); max-width: 40px; transition: all 0.3s; }
+  .step-line.done { background: var(--gold); }
+
+  /* FIELDS */
+  .field { margin-bottom: 16px; }
+  label { display: block; font-size: 0.75rem; font-weight: 800; color: var(--text-muted);
+          margin-bottom: 7px; text-transform: uppercase; letter-spacing: 0.7px; }
+  input, select { width: 100%; padding: 14px 12px; border: 1.5px solid var(--border);
+                  border-radius: 10px; font-size: 1rem; background: var(--input-bg);
+                  color: var(--text); transition: border-color 0.2s; -webkit-appearance: none;
+                  appearance: none; }
+  input::placeholder { color: #CCC; }
+  input:focus, select:focus { outline: none; border-color: var(--gold);
+                               box-shadow: 0 0 0 3px rgba(184,144,42,0.1); background: #FFF; }
+
+  /* SERVICE GRID */
+  .service-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .service-btn { padding: 14px 10px; background: var(--input-bg); border: 2px solid var(--border);
+                 border-radius: 12px; color: var(--text-muted); font-size: 0.82rem; font-weight: 700;
+                 cursor: pointer; text-align: center; transition: all 0.2s; line-height: 1.3; }
+  .service-btn:hover { border-color: var(--gold-light); color: var(--text); }
+  .service-btn.selected { border-color: var(--gold); color: var(--gold); background: var(--gold-bg); }
+
+  /* TIME GRID */
+  .time-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .time-grid.wide { grid-template-columns: repeat(4, 1fr); }
+  .time-btn { padding: 14px 4px; background: var(--input-bg); border: 2px solid var(--border);
+              border-radius: 10px; color: var(--text-muted); font-size: 0.85rem; font-weight: 700;
+              cursor: pointer; text-align: center; transition: all 0.2s; }
+  .time-btn:hover { border-color: var(--gold-light); color: var(--text); }
+  .time-btn.selected { border-color: var(--gold); color: var(--gold); background: var(--gold-bg); }
+  .time-btn.taken { opacity: 0.35; cursor: not-allowed; text-decoration: line-through; }
+  .hours-note { font-size: 0.78rem; color: var(--text-muted); background: var(--gold-bg);
+                border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; margin-bottom: 12px; }
+
+  /* BUTTONS */
+  .btn { width: 100%; padding: 16px; background: var(--gold); color: var(--black); border: none;
+         border-radius: 12px; font-size: 1rem; font-weight: 800; cursor: pointer;
+         transition: all 0.2s; margin-top: 6px; }
+  .btn:hover { background: var(--gold-light); }
+  .btn:active { transform: scale(0.98); }
+  .btn-outline { background: transparent; border: 2px solid var(--gold); color: var(--gold); font-weight: 700; }
+  .btn-outline:hover { background: var(--gold-bg); }
+  .btn-sm { padding: 10px 16px; font-size: 0.85rem; width: auto; }
+  .btn-black { background: var(--black); color: #FFF; }
+  .btn-black:hover { background: #333; }
+
+  /* SUMMARY */
+  .summary { background: var(--gold-bg); border: 1.5px solid var(--border);
+             border-radius: 14px; padding: 18px; margin-bottom: 16px; }
+  .summary-row { display: flex; justify-content: space-between; align-items: center;
+                 padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+  .summary-row:last-child { border-bottom: none; }
+  .summary-label { color: var(--text-muted); font-size: 0.78rem; font-weight: 700; text-transform: uppercase; }
+  .summary-value { color: var(--text); font-weight: 700; text-align: right; max-width: 62%; }
+
+  /* APPOINTMENT CARDS */
+  .appt-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px;
+               padding: 16px; margin-bottom: 12px; border-left: 4px solid var(--gold);
+               box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+  .appt-name { font-weight: 800; font-size: 1rem; color: var(--black); }
+  .appt-service { font-size: 0.8rem; color: var(--gold); font-weight: 700; background: var(--gold-bg);
+                  padding: 3px 10px; border-radius: 20px; display: inline-block;
+                  margin: 6px 0; border: 1px solid var(--border); }
+  .appt-time-row { display: flex; gap: 16px; margin-top: 6px; flex-wrap: wrap; }
+  .appt-time-item { font-size: 0.84rem; color: var(--text-muted); font-weight: 600; }
+  .appt-cancel { margin-top: 12px; }
+
+  /* SEARCH BOX */
+  .search-box { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px;
+                padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+  .search-box p { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px; line-height: 1.6; }
+
+  /* CONTACT */
+  .contact-hero { background: var(--black); border-radius: 18px; padding: 28px 20px;
+                  text-align: center; margin-bottom: 16px; }
+  .contact-hero p { color: #999; font-size: 0.8rem; margin-top: 4px; letter-spacing: 1.2px; text-transform: uppercase; }
+  .contact-phone { font-size: 1.9rem; font-weight: 900; color: var(--gold); margin: 10px 0; letter-spacing: 1px; }
+  .call-btn { display: inline-block; background: var(--gold); color: var(--black); font-weight: 800;
+              font-size: 1rem; padding: 14px 36px; border-radius: 50px; text-decoration: none;
+              margin-top: 8px; transition: all 0.2s; }
+  .call-btn:hover { background: var(--gold-light); }
+  .contact-row { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--border); }
+  .contact-row:last-child { border-bottom: none; }
+  .contact-icon { width: 42px; height: 42px; background: var(--gold-bg); border: 1px solid var(--border);
+                  border-radius: 10px; display: flex; align-items: center; justify-content: center;
+                  font-size: 1.2rem; flex-shrink: 0; }
+  .contact-label { font-size: 0.72rem; font-weight: 800; color: var(--text-muted);
+                   text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+  .contact-value { font-size: 0.95rem; font-weight: 700; color: var(--black); }
+  .contact-value a { color: var(--gold); text-decoration: none; }
+
+  /* OWNER MODAL OVERLAY */
+  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+             z-index: 500; align-items: flex-end; justify-content: center; }
+  .overlay.active { display: flex; }
+  .modal { background: #FFF; border-radius: 20px 20px 0 0; width: 100%; max-width: 500px;
+           max-height: 92vh; overflow-y: auto; padding: 24px 20px 40px; }
+  .modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 4px;
+                  margin: 0 auto 20px; }
+  .modal-title { font-size: 1.1rem; font-weight: 900; color: var(--black); margin-bottom: 18px; }
+
+  /* OWNER STATS */
+  .owner-stat-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+  .owner-stat { background: var(--gold-bg); border: 1px solid var(--border); border-radius: 12px;
+                padding: 12px 8px; text-align: center; }
+  .owner-stat-num { font-size: 1.4rem; font-weight: 900; color: var(--gold); }
+  .owner-stat-label { font-size: 0.65rem; color: var(--text-muted); font-weight: 700;
+                      text-transform: uppercase; letter-spacing: 0.3px; margin-top: 2px; }
+
+  /* OWNER APPT CARD */
+  .oa-card { background: var(--page-bg); border: 1px solid var(--border); border-radius: 12px;
+             padding: 14px; margin-bottom: 10px; border-left: 3px solid var(--gold); }
+  .oa-name { font-weight: 800; font-size: 0.92rem; }
+  .oa-phone { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
+  .oa-service { font-size: 0.76rem; color: var(--gold); font-weight: 700; background: var(--gold-bg);
+                padding: 2px 8px; border-radius: 20px; display: inline-block; margin: 5px 0;
+                border: 1px solid var(--border); }
+  .oa-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+  .oa-time { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
+  .btn-danger { background: transparent; border: 2px solid #c0392b; color: #c0392b;
+                font-weight: 700; padding: 8px 14px; font-size: 0.8rem; width: auto;
+                border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+  .btn-danger:hover { background: rgba(192,57,43,0.08); }
+  .filter-row { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .filter-btn { padding: 7px 14px; border-radius: 20px; border: 1.5px solid var(--border);
+                background: var(--input-bg); color: var(--text-muted); font-size: 0.75rem;
+                font-weight: 700; cursor: pointer; transition: all 0.2s; text-transform: uppercase; }
+  .filter-btn.active { border-color: var(--gold); color: var(--gold); background: var(--gold-bg); }
+  .divider { height: 1px; background: var(--border); margin: 10px 0; }
+  .btn-logout { background: transparent; border: 1.5px solid var(--border); color: var(--text-muted);
+                font-size: 0.82rem; padding: 9px 14px; width: auto; border-radius: 8px; cursor: pointer; }
+  .btn-logout:hover { border-color: #999; }
+
+  /* TOAST */
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+           background: var(--black); border: 1px solid var(--gold); color: #FFF;
+           padding: 14px 22px; border-radius: 12px; font-size: 0.9rem; display: none;
+           z-index: 999; text-align: center; min-width: 260px; max-width: 90vw;
+           box-shadow: 0 4px 20px rgba(0,0,0,0.2); font-weight: 600; }
+  .toast.error { border-color: #e74c3c; }
+
+  /* MISC */
+  .empty { text-align: center; padding: 40px 16px; }
+  .empty-icon { font-size: 2.8rem; margin-bottom: 10px; }
+  .empty p { color: var(--text-muted); font-size: 0.9rem; }
+  .confirm-icon { text-align: center; font-size: 3rem; margin-bottom: 10px; }
+  .confirm-title { text-align: center; font-size: 1.15rem; font-weight: 900; color: var(--black); margin-bottom: 4px; }
+  .confirm-sub { text-align: center; font-size: 0.84rem; color: var(--text-muted); margin-bottom: 20px; }
+  .hidden { display: none !important; }
+  footer { text-align: center; padding: 16px 16px 32px; }
+  footer a { color: #CCC; font-size: 0.72rem; text-decoration: none; }
+  footer a:hover { color: var(--gold); }
+  .error-box { background: #FDF0EE; border: 1px solid #e8a89e; border-radius: 10px;
+               padding: 12px 14px; font-size: 0.88rem; color: #c0392b; margin-bottom: 14px; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ HEADER ═══════════════ -->
+<header>
+  <div class="logo-wrap">
+    <div class="logo-diamond"></div>
+    <div class="logo-inner"></div>
+  </div>
+  <h1>Simply<span>Accounting</span>Firm</h1>
+  <p>Professional Accounting Services</p>
+</header>
+
+<!-- ═══════════════ TABS ═══════════════ -->
+<div class="tabs">
+  <div class="tab active" onclick="showTab('home')">&#127968; Home</div>
+  <div class="tab" onclick="showTab('book')">&#128197; Book</div>
+  <div class="tab" onclick="showTab('appointments')">&#128203; My Appts</div>
+  <div class="tab" onclick="showTab('contact')">&#128222; Contact</div>
+</div>
+
+<!-- ═══════════════ HOME ═══════════════ -->
+<div id="home" class="section active">
+  <div class="hero">
+    <h2>Welcome to <span>Simply</span>AccountingFirm</h2>
+    <p>Professional accounting services tailored for individuals and businesses. Book your appointment today.</p>
+    <button class="hero-btn" onclick="showTab('book')">Book an Appointment</button>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat-pill">
+      <div class="stat-num" id="dash-total">0</div>
+      <div class="stat-label">Total Bookings</div>
+    </div>
+    <div class="stat-pill">
+      <div class="stat-num">5</div>
+      <div class="stat-label">Services</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">◆</span> Our Services</div>
+    <ul class="service-list">
+      <li>Tax Consultation</li>
+      <li>Bookkeeping Review</li>
+      <li>Payroll Setup</li>
+      <li>Business Audit</li>
+      <li>Financial Planning</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">◆</span> Business Hours</div>
+    <table class="hours-table">
+      <tr><td>Monday – Friday</td><td>5:00 PM – 8:00 PM</td></tr>
+      <tr class="wknd"><td>Saturday</td><td>9:00 AM – 6:00 PM</td></tr>
+      <tr class="wknd"><td>Sunday</td><td>9:00 AM – 6:00 PM</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">◆</span> Contact Us</div>
+    <div class="contact-row">
+      <div class="contact-icon">&#128222;</div>
+      <div>
+        <div class="contact-label">Phone</div>
+        <div class="contact-value"><a href="tel:863-738-9105">863-738-9105</a></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ BOOK ═══════════════ -->
+<div id="book" class="section">
+  <div class="steps">
+    <div class="step active" id="s1">1</div>
+    <div class="step-line" id="l1"></div>
+    <div class="step" id="s2">2</div>
+    <div class="step-line" id="l2"></div>
+    <div class="step" id="s3">3</div>
+    <div class="step-line" id="l3"></div>
+    <div class="step" id="s4">4</div>
+  </div>
+
+  <!-- Step 1: Info -->
+  <div id="step1">
+    <div class="card">
+      <div class="card-title"><span class="icon">◆</span> Your Information</div>
+      <div class="field">
+        <label>Full Name</label>
+        <input id="name" type="text" placeholder="e.g. Jane Smith" autocomplete="name">
+      </div>
+      <div class="field">
+        <label>Phone Number</label>
+        <input id="phone" type="tel" placeholder="e.g. (555) 123-4567" autocomplete="tel">
+      </div>
+      <button class="btn" onclick="goStep(2)">Continue &#8594;</button>
+    </div>
+  </div>
+
+  <!-- Step 2: Service -->
+  <div id="step2" class="hidden">
+    <div class="card">
+      <div class="card-title"><span class="icon">◆</span> Select a Service</div>
+      <div class="service-grid">
+        <div class="service-btn" onclick="selectService(this,'Tax Consultation')">Tax Consultation</div>
+        <div class="service-btn" onclick="selectService(this,'Bookkeeping Review')">Bookkeeping Review</div>
+        <div class="service-btn" onclick="selectService(this,'Payroll Setup')">Payroll Setup</div>
+        <div class="service-btn" onclick="selectService(this,'Business Audit')">Business Audit</div>
+        <div class="service-btn" onclick="selectService(this,'Financial Planning')">Financial Planning</div>
+      </div>
+    </div>
+    <button class="btn btn-outline" onclick="goStep(1)">&#8592; Back</button>
+  </div>
+
+  <!-- Step 3: Date & Time -->
+  <div id="step3" class="hidden">
+    <div class="card">
+      <div class="card-title"><span class="icon">◆</span> Pick a Date</div>
+      <div class="field" style="margin-bottom:0;">
+        <input id="date" type="date" onchange="loadTimes()">
+      </div>
+    </div>
+    <div class="card" id="time-card" style="display:none;">
+      <div class="card-title"><span class="icon">◆</span> Available Times</div>
+      <div class="hours-note" id="hours-note"></div>
+      <div class="time-grid" id="time-grid"></div>
+    </div>
+    <button class="btn btn-outline" onclick="goStep(2)" style="margin-bottom:10px;">&#8592; Back</button>
+  </div>
+
+  <!-- Step 4: Confirm -->
+  <div id="step4" class="hidden">
+    <div class="card">
+      <div class="confirm-icon">&#9989;</div>
+      <div class="confirm-title">Confirm Appointment</div>
+      <div class="confirm-sub">Please review your details below</div>
+      <div class="summary" id="summary"></div>
+      <button class="btn" onclick="bookAppointment()">Confirm Booking</button>
+      <button class="btn btn-outline" onclick="goStep(3)" style="margin-top:10px;">&#8592; Back</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MY APPOINTMENTS ═══════════════ -->
+<div id="appointments" class="section">
+  <div class="search-box">
+    <p>Enter the phone number you used when booking to view your appointments.</p>
+    <div class="field" style="margin-bottom:10px;">
+      <input id="search-phone" type="tel" placeholder="Your phone number">
+    </div>
+    <button class="btn" onclick="loadMyAppointments()">Find My Appointments</button>
+  </div>
+  <div id="appt-list"></div>
+</div>
+
+<!-- ═══════════════ CONTACT ═══════════════ -->
+<div id="contact" class="section">
+  <div class="contact-hero">
+    <p>Get in touch with us</p>
+    <div class="contact-phone">863-738-9105</div>
+    <a class="call-btn" href="tel:863-738-9105">&#128222; Call Now</a>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">◆</span> Contact Information</div>
+    <div class="contact-row">
+      <div class="contact-icon">&#128222;</div>
+      <div>
+        <div class="contact-label">Phone</div>
+        <div class="contact-value"><a href="tel:863-738-9105">863-738-9105</a></div>
+      </div>
+    </div>
+    <div class="contact-row">
+      <div class="contact-icon">&#128337;</div>
+      <div>
+        <div class="contact-label">Weekday Hours</div>
+        <div class="contact-value">Mon – Fri &nbsp;&#8226;&nbsp; 5:00 PM – 8:00 PM</div>
+      </div>
+    </div>
+    <div class="contact-row">
+      <div class="contact-icon">&#128336;</div>
+      <div>
+        <div class="contact-label">Weekend Hours</div>
+        <div class="contact-value">Sat – Sun &nbsp;&#8226;&nbsp; 9:00 AM – 6:00 PM</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">◆</span> Have a Question?</div>
+    <p style="font-size:0.88rem;color:var(--text-muted);line-height:1.7;margin-bottom:14px;">
+      For questions about our services, pricing, or to schedule a consultation, give us a call. We're happy to help!
+    </p>
+    <a class="btn" href="tel:863-738-9105" style="display:block;text-align:center;text-decoration:none;">
+      &#128222;&nbsp; Call 863-738-9105
+    </a>
+  </div>
+</div>
+
+<!-- ═══════════════ FOOTER ═══════════════ -->
+<footer>
+  <a href="#" onclick="openOwner(); return false;">Owner Access</a>
+</footer>
+
+<!-- ═══════════════ OWNER MODAL ═══════════════ -->
+<div class="overlay" id="ownerOverlay" onclick="closeOwnerIfBg(event)">
+  <div class="modal" id="ownerModal">
+    <div class="modal-handle"></div>
+
+    <!-- LOGIN VIEW -->
+    <div id="ownerLogin">
+      <div class="modal-title">&#128274; Owner Login</div>
+      <div id="owner-error" class="error-box hidden">Incorrect password. Try again.</div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="owner-pwd" placeholder="Enter owner password"
+               onkeydown="if(event.key==='Enter') ownerLogin()">
+      </div>
+      <button class="btn" onclick="ownerLogin()">Login</button>
+      <button class="btn btn-outline" onclick="closeOwner()" style="margin-top:10px;">Cancel</button>
+    </div>
+
+    <!-- DASHBOARD VIEW -->
+    <div id="ownerDash" class="hidden">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <div class="modal-title" style="margin-bottom:0;">&#128203; Dashboard</div>
+        <button class="btn-logout" onclick="ownerLogout()">Log Out</button>
+      </div>
+
+      <div class="owner-stat-row">
+        <div class="owner-stat">
+          <div class="owner-stat-num" id="ow-total">0</div>
+          <div class="owner-stat-label">Total</div>
+        </div>
+        <div class="owner-stat">
+          <div class="owner-stat-num" id="ow-today">0</div>
+          <div class="owner-stat-label">Today</div>
+        </div>
+        <div class="owner-stat">
+          <div class="owner-stat-num" id="ow-upcoming">0</div>
+          <div class="owner-stat-label">Upcoming</div>
+        </div>
+      </div>
+
+      <div class="filter-row">
+        <div class="filter-btn active" onclick="ownerFilter('all',this)">All</div>
+        <div class="filter-btn" onclick="ownerFilter('upcoming',this)">Upcoming</div>
+        <div class="filter-btn" onclick="ownerFilter('today',this)">Today</div>
+      </div>
+
+      <div id="owner-appt-list"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ═══════════════ SCRIPT ═══════════════ -->
+<script>
+// ── CONSTANTS ──
+const OWNER_PASSWORD = "Lance*@1994";
+const OWNER_PHONE    = "863-738-9105";
+const SERVICES = ["Tax Consultation","Bookkeeping Review","Payroll Setup","Business Audit","Financial Planning"];
+const WEEKDAY_HOURS  = ["5:00 PM","6:00 PM","7:00 PM","8:00 PM"];
+const WEEKEND_HOURS  = ["9:00 AM","10:00 AM","11:00 AM","12:00 PM","1:00 PM","2:00 PM","3:00 PM","4:00 PM","5:00 PM","6:00 PM"];
+const TODAY = new Date().toISOString().split('T')[0];
+
+// ── LOCAL STORAGE HELPERS ──
+function getAppts() {
+  try { return JSON.parse(localStorage.getItem('saf_appointments') || '[]'); } catch(e) { return []; }
+}
+function saveAppts(arr) {
+  localStorage.setItem('saf_appointments', JSON.stringify(arr));
+}
+function nextId() {
+  const ids = getAppts().map(a => a.id);
+  return ids.length ? Math.max(...ids) + 1 : 1;
+}
+
+// ── STATE ──
+let selectedService = '', selectedTime = '', currentStep = 1;
+let ownerLoggedIn = false;
+
+// ── TAB SWITCHING ──
+function showTab(name) {
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    t.classList.toggle('active', ['home','book','appointments','contact'][i] === name);
+  });
+  document.querySelectorAll('.section').forEach(s => {
+    s.classList.toggle('active', s.id === name);
+  });
+  window.scrollTo(0, 0);
+  if (name === 'home') updateDashStats();
+}
+
+// ── TOAST ──
+function toast(msg, type = 'success') {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.className = 'toast ' + type;
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 3200);
+}
+
+// ── STEP NAVIGATION ──
+function goStep(n) {
+  if (n === 2) {
+    const nm = document.getElementById('name').value.trim();
+    const ph = document.getElementById('phone').value.trim();
+    if (!nm || !ph) { toast('Please fill in your name and phone number.', 'error'); return; }
+  }
+  if (n === 3 && !selectedService) { toast('Please select a service.', 'error'); return; }
+  if (n === 4) {
+    if (!document.getElementById('date').value) { toast('Please select a date.', 'error'); return; }
+    if (!selectedTime) { toast('Please select a time.', 'error'); return; }
+    buildSummary();
+  }
+  for (let i = 1; i <= 4; i++) {
+    document.getElementById('step' + i).classList.toggle('hidden', i !== n);
+    const el = document.getElementById('s' + i);
+    if (i < n) { el.classList.remove('active'); el.classList.add('done'); el.textContent = '✓'; }
+    else if (i === n) { el.classList.add('active'); el.classList.remove('done'); el.textContent = i; }
+    else { el.classList.remove('active','done'); el.textContent = i; }
+    if (i < 4) document.getElementById('l' + i).classList.toggle('done', i < n);
+  }
+  currentStep = n;
+  window.scrollTo(0, 0);
+}
+
+// ── SERVICE SELECTION ──
+function selectService(el, name) {
+  document.querySelectorAll('.service-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedService = name;
+  setTimeout(() => goStep(3), 180);
+}
+
+// ── LOAD TIME SLOTS ──
+function loadTimes() {
+  const date = document.getElementById('date').value;
+  if (!date) return;
+  selectedTime = '';
+  const dow = new Date(date + 'T12:00:00').getDay();
+  const isWeekend = dow === 0 || dow === 6;
+  const hours = isWeekend ? WEEKEND_HOURS : WEEKDAY_HOURS;
+  document.getElementById('hours-note').textContent = isWeekend
+    ? 'Weekend hours: 9:00 AM – 6:00 PM'
+    : 'Weekday hours: 5:00 PM – 8:00 PM';
+
+  const taken = getAppts().filter(a => a.date === date).map(a => a.time);
+  const grid = document.getElementById('time-grid');
+  grid.className = 'time-grid' + (isWeekend ? ' wide' : '');
+  grid.innerHTML = hours.map(h => {
+    const isTaken = taken.includes(h);
+    return `<div class="time-btn${isTaken ? ' taken' : ''}" ${isTaken ? '' : `onclick="selectTime(this,'${h}')"`}>${h}</div>`;
+  }).join('');
+  document.getElementById('time-card').style.display = 'block';
+}
+
+// ── SELECT TIME ──
+function selectTime(el, t) {
+  document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedTime = t;
+  setTimeout(() => goStep(4), 180);
+}
+
+// ── BUILD SUMMARY ──
+function buildSummary() {
+  const name  = document.getElementById('name').value.trim();
+  const phone = document.getElementById('phone').value.trim();
+  const date  = document.getElementById('date').value;
+  const rows = [
+    ['Name', name], ['Phone', phone], ['Service', selectedService],
+    ['Date', new Date(date + 'T12:00:00').toLocaleDateString('en-US',
+      {weekday:'long', year:'numeric', month:'long', day:'numeric'})],
+    ['Time', selectedTime]
+  ];
+  document.getElementById('summary').innerHTML = rows.map(([l, v]) =>
+    `<div class="summary-row"><span class="summary-label">${l}</span><span class="summary-value">${v}</span></div>`
+  ).join('');
+}
+
+// ── BOOK APPOINTMENT ──
+function bookAppointment() {
+  const name  = document.getElementById('name').value.trim();
+  const phone = document.getElementById('phone').value.trim();
+  const date  = document.getElementById('date').value;
+
+  // Check slot still available
+  const taken = getAppts().filter(a => a.date === date).map(a => a.time);
+  if (taken.includes(selectedTime)) {
+    toast('That slot was just taken. Please choose another.', 'error');
+    goStep(3); return;
+  }
+
+  const appt = { id: nextId(), name, phone, service: selectedService, date, time: selectedTime,
+                 created: new Date().toISOString() };
+  const all = getAppts();
+  all.push(appt);
+  saveAppts(all);
+
+  toast('Appointment confirmed!');
+  ['name','phone','date'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('time-card').style.display = 'none';
+  selectedService = ''; selectedTime = '';
+  document.querySelectorAll('.service-btn').forEach(b => b.classList.remove('selected'));
+  goStep(1);
+  updateDashStats();
+}
+
+// ── MY APPOINTMENTS ──
+function loadMyAppointments() {
+  const phone = document.getElementById('search-phone').value.trim();
+  if (!phone) { toast('Enter your phone number.', 'error'); return; }
+  const data = getAppts().filter(a => a.phone === phone)
+    .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
+  const list = document.getElementById('appt-list');
+  if (!data.length) {
+    list.innerHTML = `<div class="empty"><div class="empty-icon">&#128197;</div><p>No appointments found for this number.</p></div>`;
+    return;
+  }
+  list.innerHTML = data.map(a => {
+    const dateStr = new Date(a.date + 'T12:00:00').toLocaleDateString('en-US',
+      {weekday:'short', month:'short', day:'numeric', year:'numeric'});
+    return `
+    <div class="appt-card">
+      <div class="appt-name">${esc(a.name)}</div>
+      <div class="appt-service">${esc(a.service)}</div>
+      <div class="appt-time-row">
+        <div class="appt-time-item">&#128197; ${dateStr}</div>
+        <div class="appt-time-item">&#128336; ${a.time}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── DASHBOARD STATS ──
+function updateDashStats() {
+  document.getElementById('dash-total').textContent = getAppts().length;
+}
+
+// ── ESCAPE HTML ──
+function esc(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── OWNER MODAL ──
+function openOwner() {
+  document.getElementById('ownerOverlay').classList.add('active');
+  if (ownerLoggedIn) renderOwnerDash();
+  else {
+    document.getElementById('ownerLogin').classList.remove('hidden');
+    document.getElementById('ownerDash').classList.add('hidden');
+    document.getElementById('owner-error').classList.add('hidden');
+    document.getElementById('owner-pwd').value = '';
+    setTimeout(() => document.getElementById('owner-pwd').focus(), 300);
+  }
+}
+function closeOwner() {
+  document.getElementById('ownerOverlay').classList.remove('active');
+}
+function closeOwnerIfBg(e) {
+  if (e.target === document.getElementById('ownerOverlay')) closeOwner();
+}
+
+function ownerLogin() {
+  const pwd = document.getElementById('owner-pwd').value;
+  if (pwd === OWNER_PASSWORD) {
+    ownerLoggedIn = true;
+    document.getElementById('owner-error').classList.add('hidden');
+    document.getElementById('ownerLogin').classList.add('hidden');
+    document.getElementById('ownerDash').classList.remove('hidden');
+    renderOwnerDash();
+  } else {
+    document.getElementById('owner-error').classList.remove('hidden');
+    document.getElementById('owner-pwd').value = '';
+    document.getElementById('owner-pwd').focus();
+  }
+}
+
+function ownerLogout() {
+  ownerLoggedIn = false;
+  document.getElementById('ownerDash').classList.add('hidden');
+  document.getElementById('ownerLogin').classList.remove('hidden');
+  document.getElementById('owner-pwd').value = '';
+}
+
+function renderOwnerDash() {
+  const all = getAppts().sort((a,b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
+  const todayN    = all.filter(a => a.date === TODAY).length;
+  const upcomingN = all.filter(a => a.date >= TODAY).length;
+  document.getElementById('ow-total').textContent    = all.length;
+  document.getElementById('ow-today').textContent    = todayN;
+  document.getElementById('ow-upcoming').textContent = upcomingN;
+
+  const list = document.getElementById('owner-appt-list');
+  if (!all.length) {
+    list.innerHTML = '<div class="empty" style="padding:24px 0;"><p>No appointments yet.</p></div>';
+    return;
+  }
+  list.innerHTML = all.map(a => {
+    const dateStr = new Date(a.date + 'T12:00:00').toLocaleDateString('en-US',
+      {weekday:'short', month:'short', day:'numeric', year:'numeric'});
+    return `
+    <div class="oa-card" data-date="${a.date}" data-id="${a.id}">
+      <div class="oa-name">${esc(a.name)}</div>
+      <div class="oa-phone">&#128222; ${esc(a.phone)}</div>
+      <div class="oa-service">${esc(a.service)}</div>
+      <div class="divider"></div>
+      <div class="oa-footer">
+        <div class="oa-time">&#128197; ${dateStr} &nbsp; &#128336; ${a.time}</div>
+        <button class="btn-danger" onclick="ownerCancel(${a.id})">Cancel</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function ownerFilter(type, el) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.oa-card').forEach(card => {
+    const d = card.dataset.date;
+    if (type === 'all') card.style.display = '';
+    else if (type === 'today') card.style.display = d === TODAY ? '' : 'none';
+    else if (type === 'upcoming') card.style.display = d >= TODAY ? '' : 'none';
+  });
+}
+
+function ownerCancel(id) {
+  if (!confirm('Cancel this appointment?')) return;
+  const updated = getAppts().filter(a => a.id !== id);
+  saveAppts(updated);
+  toast('Appointment cancelled.');
+  renderOwnerDash();
+  updateDashStats();
+}
+
+// ── INIT ──
+document.getElementById('date').min = TODAY;
+updateDashStats();
+</script>
+
+</body>
+</html>
